@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const mongoose = require("mongoose");
 
 app.use(express.json());
 
@@ -8,23 +9,46 @@ app.get("/", (req, res) => {
 });
 
 // Sample in-memory  storage
-let todos = [];
+// let todos = [];
 
-app.post("/todos", (req, res) => {
+// Connecting mongodb
+mongoose
+    .connect("mongodb://localhost:27017/mern-jvl")
+    .then(() => {
+        console.log("DB connected");
+    })
+    .catch((err) => {
+        console.log("ERROR: ", err);
+    });
+
+// Creating Schema
+const todoSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        unique: true
+    },
+    description: String,
+});
+
+// Creating Model
+const todoModel = mongoose.model("Todo", todoSchema);
+
+app.post("/todos", async (req, res) => {
     const { title, description } = req.body;
-    const newTodo = {
-        id: todos.length + 1,
-        title,
-        description,
-    };
-    todos.push(newTodo);
-    console.log(todos);
-    res.status(201).json(newTodo);
+
+    try {
+        const newTodo = new todoModel({ title, description });
+        await newTodo.save();
+        res.status(201).json(newTodo);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message: error.message});
+    }
 });
 
 app.get("/todos", (req, res) => {
-    res.json(todos)
-})
+    // res.json(todos);
+});
 
 const port = 3000;
 app.listen(port, () => {
