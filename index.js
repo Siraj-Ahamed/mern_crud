@@ -1,6 +1,9 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+const bodyParser = require("body-parser");
+// const jsonParser = bodyParser.json();
+// app.use(jsonParser);
 
 app.use(express.json());
 
@@ -25,7 +28,7 @@ mongoose
 const todoSchema = new mongoose.Schema({
     title: {
         type: String,
-        unique: true
+        required: true,
     },
     description: String,
 });
@@ -42,12 +45,50 @@ app.post("/todos", async (req, res) => {
         res.status(201).json(newTodo);
     } catch (error) {
         console.log(error);
-        res.status(500).json({message: error.message});
+        res.status(500).json({ message: error.message });
     }
 });
 
-app.get("/todos", (req, res) => {
-    // res.json(todos);
+app.get("/todos", async (req, res) => {
+    try {
+        const todos = await todoModel.find({});
+        res.status(200).json(todos);
+    } catch (error) {
+        console.log(error); // Log the error for debugging
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Update a todo item
+app.put("/todos/:id", async (req, res) => {
+    try {
+        const { title, description } = req.body;
+        const id = req.params.id;
+        const updateTodo = await todoModel.findByIdAndUpdate(
+            id,
+            { title, description },
+            { new: true }
+        );
+        if (!updateTodo) {
+            return res.status(404).json({ message: "Todo not found" });
+        }
+        res.status(200).json(updateTodo);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Delete a todo
+app.delete("/todos/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        await todoModel.findByIdAndDelete(id);
+        res.status(204).end();
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message });
+    }
 });
 
 const port = 3000;
