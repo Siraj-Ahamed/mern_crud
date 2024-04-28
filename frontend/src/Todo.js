@@ -27,7 +27,10 @@ export default function Todo() {
                     if (res.ok) {
                         // add item to list
                         console.log("TODO", { title, description });
-                        setTodos([...todos, { title, description }]);
+                        // setTodos([...todos, { title, description }]);
+                        getItems();
+                        setTitle("");
+                        setDescription("");
                         setMessage("Item added successfully");
                         setTimeout(() => {
                             setMessage("");
@@ -68,12 +71,15 @@ export default function Todo() {
         setError("");
         // check inputs
         if (editTitle.trim() !== "" && editDescription.trim() !== "") {
-            fetch(apiUrl + "/todos/" +editId, {
+            fetch(apiUrl + "/todos/" + editId, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ title: editTitle, description: editDescription }),
+                body: JSON.stringify({
+                    title: editTitle,
+                    description: editDescription,
+                }),
             })
                 .then((res) => {
                     if (res.ok) {
@@ -108,6 +114,17 @@ export default function Todo() {
     const handleEditCancel = () => {
         setEditId(-1);
     };
+
+    const handleDelete = (id) => {
+        if (window.confirm("Are you sure want to delete?")) {
+            fetch(apiUrl + "/todos/" + id, {
+                method: "DELETE",
+            }).then(() => {
+                const updatedTodos = todos.filter((item) => item._id !== id);
+                setTodos(updatedTodos);
+            });
+        }
+    };
     return (
         <>
             <div className="row p-3 bg-success text-light">
@@ -139,7 +156,8 @@ export default function Todo() {
             </div>
             <div className="row p-3 mt-3">
                 <h3>Tasks</h3>
-                <ul className="list-group">
+               <div className="col-md-6">
+               <ul className="list-group">
                     {todos.map((item) => (
                         <li
                             key={item._id}
@@ -195,7 +213,10 @@ export default function Todo() {
                                     </button>
                                 )}
                                 {editId == -1 ? (
-                                    <button className="btn btn-danger">
+                                    <button
+                                        className="btn btn-danger"
+                                        onClick={() => handleDelete(item._id)}
+                                    >
                                         Delete
                                     </button>
                                 ) : (
@@ -210,6 +231,7 @@ export default function Todo() {
                         </li>
                     ))}
                 </ul>
+               </div>
             </div>
         </>
     );
