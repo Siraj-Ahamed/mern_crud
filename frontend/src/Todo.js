@@ -64,10 +64,49 @@ export default function Todo() {
         setEditDescription(item.description);
     };
 
-    const handleUpdate = (item) => {
-        setEditId(item._id);
-        setEditTitle(item.title);
-        setEditDescription(item.description);
+    const handleUpdate = () => {
+        setError("");
+        // check inputs
+        if (editTitle.trim() !== "" && editDescription.trim() !== "") {
+            fetch(apiUrl + "/todos/" +editId, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ title: editTitle, description: editDescription }),
+            })
+                .then((res) => {
+                    if (res.ok) {
+                        // update item to list
+                        // console.log("TODO", { editTitle, editDescription });
+
+                        const updatedTodos = todos.map((item) => {
+                            if (item._id == editId) {
+                                item.title = editTitle;
+                                item.description = editDescription;
+                            }
+                            return item;
+                        });
+
+                        setTodos(updatedTodos);
+                        setMessage("Item updated successfully");
+                        setTimeout(() => {
+                            setMessage("");
+                        }, 3000);
+                        setEditId(-1);
+                    } else {
+                        // Set Error
+                        setError("Unable to update todo item");
+                    }
+                })
+                .catch(() => {
+                    setError("Unable to update todo item // catch");
+                });
+        }
+    };
+
+    const handleEditCancel = () => {
+        setEditId(-1);
     };
     return (
         <>
@@ -155,9 +194,18 @@ export default function Todo() {
                                         Update
                                     </button>
                                 )}
-                                <button className="btn btn-danger">
-                                    Delete
-                                </button>
+                                {editId == -1 ? (
+                                    <button className="btn btn-danger">
+                                        Delete
+                                    </button>
+                                ) : (
+                                    <button
+                                        className="btn btn-danger"
+                                        onClick={handleEditCancel}
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
                             </div>
                         </li>
                     ))}

@@ -3,10 +3,13 @@ const app = express();
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const dotenv = require("dotenv");
 
 app.use(express.json());
 
 app.use(cors());
+
+dotenv.config();
 app.get("/", (req, res) => {
     res.send("Hello World!");
 });
@@ -16,7 +19,7 @@ app.get("/", (req, res) => {
 
 // Connecting mongodb
 mongoose
-    .connect("mongodb://localhost:27017/mern-jvl")
+    .connect(process.env.MONGO_ATLAS)
     .then(() => {
         console.log("DB connected");
     })
